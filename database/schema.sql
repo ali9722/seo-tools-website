@@ -1,0 +1,64 @@
+CREATE DATABASE IF NOT EXISTS tools_website
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE tools_website;
+
+CREATE TABLE IF NOT EXISTS tools (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(180) NOT NULL,
+  category VARCHAR(120) NOT NULL,
+  icon VARCHAR(255) DEFAULT NULL,
+  code_snippet MEDIUMTEXT,
+  points_required INT UNSIGNED NOT NULL DEFAULT 0,
+  status ENUM('active', 'inactive', 'draft') NOT NULL DEFAULT 'active',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_tools_category (category),
+  INDEX idx_tools_status (status)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  points_balance INT UNSIGNED NOT NULL DEFAULT 0,
+  subscription_plan ENUM('free', 'basic', 'pro', 'enterprise') NOT NULL DEFAULT 'free',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_users_email (email),
+  INDEX idx_users_subscription_plan (subscription_plan)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS settings (
+  id TINYINT UNSIGNED NOT NULL PRIMARY KEY DEFAULT 1,
+  header_scripts MEDIUMTEXT,
+  google_analytics_code MEDIUMTEXT,
+  rapidapi_key VARCHAR(255) DEFAULT NULL,
+  stripe_secret_key VARCHAR(255) DEFAULT NULL,
+  stripe_public_key VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT chk_settings_singleton CHECK (id = 1)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS admin_users (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS packages (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  points_amount INT UNSIGNED NOT NULL,
+  price DECIMAL(10,2) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_packages_name (name)
+) ENGINE=InnoDB;
+
+INSERT INTO settings (id, header_scripts, google_analytics_code, rapidapi_key, stripe_secret_key, stripe_public_key)
+VALUES (1, NULL, NULL, NULL, NULL, NULL)
+ON DUPLICATE KEY UPDATE id = VALUES(id);
